@@ -5,6 +5,8 @@ window.onload = function(){
             this.width = 30;
             this.height = 10;
             this.speed = 20;
+            this.blasted=false;
+
             this.angle=angle - Math.PI/2;
             this.position = {x:x, y:y};
         }
@@ -35,7 +37,8 @@ window.onload = function(){
             this.speed = 3;
             this.angle=0;
             this.position = {x:100, y:0};
-            this.position.x = Math.floor(Math.random()*100)%600;
+            this.blasted=false;
+            this.position.x = Math.floor(Math.random()*1000)%1000;
             this.img = new Image(this.width,this.height);
             this.img.src = "assets/spaceship.png";
         }
@@ -104,6 +107,21 @@ window.onload = function(){
             this.spaceShip = new SpaceShip();
             this.initEventHandlers();
         }
+
+        handleBulletAsteroidCollision(){
+            this.bullets.map((bullet)=>{
+                this.asteroids.forEach((asteroid)=>{
+                    let x = bullet.width/2 +bullet.position.x + Math.cos(bullet.angle);
+                    let y = bullet.height/2 +bullet.position.y + Math.cos(bullet.angle);
+                    let distance = (Math.sqrt((x-asteroid.position.x)**2 + (y-asteroid.position.y)**2));
+                    if(distance <= asteroid.width/2 || distance < asteroid.height/2)
+                    {
+                        asteroid.blasted = true;
+                        bullet.blasted = true;
+                    }
+                })
+            })
+        }
     
         drawStartScreen(ctx){
             if(this.stopped){
@@ -119,11 +137,15 @@ window.onload = function(){
         update(){
             // console.log(this.bullets);
             requestAnimationFrame(()=>this.update());
+            this.handleBulletAsteroidCollision();
 
-            if (this.asteroids.length < 6)
+            if (this.asteroids.length < 2)
                 this.asteroids.push(new Asteroid());
             this.ctx.clearRect(0,0,600,600);
             this.spaceShip.draw(this.ctx);
+            this.asteroids = this.asteroids.filter((asteroid)=>!asteroid.blasted);
+            this.bullets = this.bullets.filter((bullet)=>!bullet.blasted);
+
             this.asteroids.forEach((asteroid)=>{
                                 asteroid.move();
                                 asteroid.draw(this.ctx);
