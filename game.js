@@ -1,5 +1,33 @@
 // import Game from "Game";
 window.onload = function(){
+    class Bullet{
+        constructor(angle, x, y){
+            this.width = 30;
+            this.height = 10;
+            this.speed = 20;
+            this.angle=angle - Math.PI/2;
+            this.position = {x:x, y:y};
+        }
+        move(){
+            // this.angle += 0.2;
+            this.position.x += this.speed * Math.cos(this.angle);
+            this.position.y += this.speed * Math.sin(this.angle);
+
+        }
+
+        draw(ctx){
+            ctx.save();
+            ctx.translate(this.position.x, this.position.y);
+            ctx.rotate(this.angle);
+            ctx.fillStyle = "#00ff00";
+            ctx.fillRect(-this.width/2, 
+                -this.height/2,
+                this.width,
+                this.height)
+            ctx.restore();
+        }
+    }
+
     class Asteroid{
         constructor(){
             this.width = 150;
@@ -32,7 +60,7 @@ window.onload = function(){
             this.width = 100;
             this.height = 100;
             this.speed = 2;
-            this.angle=0;
+            this.angle=0;//Math.PI/2;
             this.position = {x:100, y:450};
             this.img = new Image(this.width,this.height);
             this.img.src = "assets/spaceship.png";
@@ -71,7 +99,8 @@ window.onload = function(){
         constructor(ctx){
             this.stopped = true;
             this.ctx = ctx;
-            this.asteroids = []
+            this.asteroids = [];
+            this.bullets = [];
             this.spaceShip = new SpaceShip();
             this.initEventHandlers();
         }
@@ -88,14 +117,20 @@ window.onload = function(){
             }
         }
         update(){
-            
+            // console.log(this.bullets);
             requestAnimationFrame(()=>this.update());
-            this.asteroids.push(new Asteroid());
+
+            if (this.asteroids.length < 6)
+                this.asteroids.push(new Asteroid());
             this.ctx.clearRect(0,0,600,600);
             this.spaceShip.draw(this.ctx);
             this.asteroids.forEach((asteroid)=>{
                                 asteroid.move();
                                 asteroid.draw(this.ctx);
+            });
+            this.bullets.forEach((bullet)=>{
+                bullet.move();
+                bullet.draw(this.ctx);
             });
 
         }
@@ -111,6 +146,14 @@ window.onload = function(){
                 else if((e.key=='j' || e.key=='k') || (e.keyCode >= 37 && e.keyCode <= 40)
                        && !this.stopped){
                     this.spaceShip.move(e.keyCode);
+                }
+                else if(e.key == 'f'){
+                    console.log(e.key);
+                    let bullet = new Bullet(this.spaceShip.angle,
+                                            this.spaceShip.position.x,
+                                            this.spaceShip.position.y);
+                    this.bullets.push(bullet);
+                    console.log(this.bullets);
                 }
             })
         }
